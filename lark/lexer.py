@@ -1,6 +1,9 @@
 ## Lexer Implementation
 
-import re
+try:
+    from onyguruma import sre as re
+except ImportError:
+    import re
 
 from .utils import Str, classify, get_regexp_width, Py36, Serialize
 from .exceptions import UnexpectedCharacters, LexError

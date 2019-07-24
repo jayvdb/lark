@@ -1,4 +1,8 @@
-import re
+try:
+    from onyguruma import sre as re
+except ImportError:
+    import re
+
 from functools import partial
 
 from .utils import get_regexp_width, Serialize
