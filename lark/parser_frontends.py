@@ -1,4 +1,8 @@
-import re
+try:
+    import re2
+except ImportError:
+    import re
+
 from functools import partial
 
 from .utils import get_regexp_width, Serialize
