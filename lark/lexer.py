@@ -57,12 +57,17 @@ class PatternRE(Pattern):
             self._regex = self._get_flags(self.value)
         return self._regex
 
+    def _get_widths(self):
+        if not hasattr(self, '_widths'):
+            self._widths = get_regexp_width(self.to_regexp())
+        return self._widths
+
     @property
     def min_width(self):
-        return get_regexp_width(self.to_regexp())[0]
+        return self._get_widths()[0]
     @property
     def max_width(self):
-        return get_regexp_width(self.to_regexp())[1]
+        return self._get_widths()[1]
 
 
 class TerminalDef(Serialize):
@@ -290,9 +295,9 @@ class TraditionalLexer(Lexer):
         terminals = list(terminals)
 
         # Sanitization
-        for t in terminals:
-            if t.pattern.min_width == 0:
-                raise LexError("Lexer does not allow zero-width terminals. (%s: %s)" % (t.name, t.pattern))
+        #for t in terminals:
+        #    if t.pattern.min_width == 0:
+        #        raise LexError("Lexer does not allow zero-width terminals. (%s: %s)" % (t.name, t.pattern))
 
         """
         #    try:
@@ -307,7 +312,7 @@ class TraditionalLexer(Lexer):
         self.newline_types = [t.name for t in terminals if _regexp_has_newline(t.pattern.to_regexp())]
         self.ignore_types = list(ignore)
 
-        terminals.sort(key=lambda x:(-x.priority, -x.pattern.max_width, -len(x.pattern.value), x.name))
+        terminals.sort(key=lambda x:(-x.priority, -len(x.pattern.value), x.name)) # -x.pattern.max_width, -len(x.pattern.value), x.name))
         self.terminals = terminals
         self.user_callbacks = user_callbacks
         self.build()
