@@ -24,7 +24,7 @@ class TestStandalone(TestCase):
         sys.stdout = code_buf
         standalone.main(StringIO(grammar), 'start')
         sys.stdout = temp
-        code = code_buf.getvalue()
+        code = 'from functools import lru_cache\n' + code_buf.getvalue()
 
         context = {}
         exec(code, context)

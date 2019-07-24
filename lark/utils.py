@@ -1,5 +1,6 @@
 import sys
 from collections import deque
+from functools import lru_cache
 
 class fzset(frozenset):
     def __repr__(self):
@@ -170,6 +171,8 @@ Py36 = (sys.version_info[:2] >= (3, 6))
 
 import sre_parse
 import sre_constants
+
+@lru_cache()
 def get_regexp_width(regexp):
     try:
         return sre_parse.parse(regexp).getwidth()

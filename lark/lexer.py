@@ -42,7 +42,9 @@ class Pattern(Serialize):
 
 class PatternStr(Pattern):
     def to_regexp(self):
-        return self._get_flags(re.escape(self.value))
+        if not hasattr(self, '_regex'):
+            self._regex = self._get_flags(re.escape(self.value))
+        return self._regex
 
     @property
     def min_width(self):
@@ -51,7 +53,9 @@ class PatternStr(Pattern):
 
 class PatternRE(Pattern):
     def to_regexp(self):
-        return self._get_flags(self.value)
+        if not hasattr(self, '_regex'):
+            self._regex = self._get_flags(self.value)
+        return self._regex
 
     @property
     def min_width(self):
@@ -241,8 +245,10 @@ def _build_mres(terminals, max_size, match_whole):
     postfix = '$' if match_whole else ''
     mres = []
     while terminals:
+        s = u'|'.join(u'(?P<%s>%s)'%(t.name, t.pattern.to_regexp()+postfix) for t in terminals[:max_size])
+        # print('startup {}'.format(s))
         try:
-            mre = re.compile(u'|'.join(u'(?P<%s>%s)'%(t.name, t.pattern.to_regexp()+postfix) for t in terminals[:max_size]))
+            mre = re.compile(s)
         except AssertionError:  # Yes, this is what Python provides us.. :/
             return _build_mres(terminals, max_size//2, match_whole)
 
@@ -252,7 +258,8 @@ def _build_mres(terminals, max_size, match_whole):
     return mres
 
 def build_mres(terminals, match_whole=False):
-    return _build_mres(terminals, len(terminals), match_whole)
+    x = _build_mres(terminals, len(terminals), match_whole)
+    return x
 
 def _regexp_has_newline(r):
     """Expressions that may indicate newlines in a regexp:
@@ -284,13 +291,15 @@ class TraditionalLexer(Lexer):
 
         # Sanitization
         for t in terminals:
-            try:
-                re.compile(t.pattern.to_regexp())
-            except:
-                raise LexError("Cannot compile token %s: %s" % (t.name, t.pattern))
-
             if t.pattern.min_width == 0:
                 raise LexError("Lexer does not allow zero-width terminals. (%s: %s)" % (t.name, t.pattern))
+
+        """
+        #    try:
+        #        re.compile(t.pattern.to_regexp())
+        #    except:
+        #        raise LexError("Cannot compile token %s: %s" % (t.name, t.pattern))
+        """
 
         assert set(ignore) <= {t.name for t in terminals}
 
